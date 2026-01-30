@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Daily Routine & Task Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    /* Smooth transition for checked items */
+    input[type="text"] {
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.2.0",
+      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="module">
+    import React, { useState, useEffect } from 'react';
+    import ReactDOM from 'react-dom/client';
+
+    // --- Data Constants ---
+    const INITIAL_ROUTINE = [
+      { id: '1', time: '06:00 AM', label: 'Wake up' },
+      { id: '2', time: '06:15 AM', label: 'Exercise & Yoga' },
+      { id: '3', time: '06:45 AM', label: 'Bath' },
+      { id: '4', time: '07:15 AM', label: 'Healthy Breakfast' },
+      { id: '5', time: '08:00 AM', label: 'Deep Work Session' },
+      { id: '6', time: '12:00 PM', label: 'Lunch & Break' },
+      { id: '7', time: '01:30 PM', label: 'Meetings / Admin' },
+      { id: '8', time: '05:00 PM', label: 'Evening Walk' },
+      { id: '9', time: '07:00 PM', label: 'Dinner' },
+      { id: '10', time: '09:00 PM', label: 'Reading & Wind down' },
+      { id: '11', time: '10:00 PM', label: 'Sleep' },
+    ];
+
+    const INITIAL_TODAY_TASKS = [
+      { id: 't1', text: 'Finish project documentation', completed: false },
+      { id: 't2', text: 'Reply to urgent emails', completed: false },
+      { id: 't3', text: 'Call the bank', completed: false },
+    ];
+
+    const INITIAL_WEEK_TASKS = [
+      { id: 'w1', text: 'Clean the apartment', completed: false },
+      { id: 'w2', text: 'Grocery shopping', completed: false },
+      { id: 'w3', text: 'Read 50 pages of new book', completed: false },
+    ];
+
+    // --- Helper Components ---
+    
+    // A simple Icon component for the "Remove" button
+    const TrashIcon = () => React.createElement('svg', { 
+      xmlns: "http://www.w3.org/2000/svg", 
+      fill: "none", 
+      viewBox: "0 0 24 24", 
+      strokeWidth: 1.5, 
+      stroke: "currentColor", 
+      className: "w-4 h-4" 
+    }, 
+      React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M6 18L18 6M6 6l12 12" })
+    );
+
+    // --- Main App Component ---
+    const App = () => {
+      // 1. Initialize State (Load from LocalStorage or fall back to defaults)
+      const [routine, setRoutine] = useState(() => {
+        const saved = localStorage.getItem('routine');
+        return saved ? JSON.parse(saved) : INITIAL_ROUTINE;
+      });
+
+      const [todayTasks, setTodayTasks] = useState(() => {
+        const saved = localStorage.getItem('todayTasks');
+        return saved ? JSON.parse(saved) : INITIAL_TODAY_TASKS;
+      });
+
+      const [weekTasks, setWeekTasks] = useState(() => {
+        const saved = localStorage.getItem('weekTasks');
+        return saved ? JSON.parse(saved) : INITIAL_WEEK_TASKS;
+      });
+
+      // 2. Save to LocalStorage whenever state changes
+      useEffect(() => {
+        localStorage.setItem('routine', JSON.stringify(routine));
+        localStorage.setItem('todayTasks', JSON.stringify(todayTasks));
+        localStorage.setItem('weekTasks', JSON.stringify(weekTasks));
+      }, [routine, todayTasks, weekTasks]);
+
+      // 3. Handlers
+      const updateRoutine = (id, field, value) => {
+        setRoutine(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+      };
+
+      const toggleTask = (listType, id) => {
+        const setter = listType === 'today' ? setTodayTasks : setWeekTasks;
+        setter(prev => prev.map(task => 
+          task.id === id ? { ...task, completed: !task.completed } : task
+        ));
+      };
+
+      const addTask = (listType) => {
+        const newTask = { id: Date.now().toString(), text: 'New task...', completed: false };
+        const setter = listType === 'today' ? setTodayTasks : setWeekTasks;
+        // Use functional update for safety
+        setter(prev => [...prev, newTask]);
+      };
+
+      const updateTaskText = (listType, id, text) => {
+        const setter = listType === 'today' ? setTodayTasks : setWeekTasks;
+        setter(prev => prev.map(task => task.id === id ? { ...task, text } : task));
+      };
+
+      const removeTask = (listType, id) => {
+        const setter = listType === 'today' ? setTodayTasks : setWeekTasks;
+        setter(prev => prev.filter(task => task.id !== id));
+      };
+
+      // 4. Render UI
+      return React.createElement('div', { className: 'min-h-screen pb-12' },
+        
+        // Header
+        React.createElement('header', { className: 'pt-12 pb-8 text-center' },
+          React.createElement('h1', { className: 'text-3xl font-light tracking-tight text-slate-800' }, 'My Daily Routine & Task Manager'),
+          React.createElement('p', { className: 'mt-2 text-slate-400 text-sm font-light uppercase tracking-widest' },
+            new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+          )
+        ),
+
+        // Main Grid
+        React.createElement('main', { className: 'max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8' },
+          
+          // LEFT COLUMN: Routine
+          React.createElement('section', { className: 'lg:col-span-5' },
+            React.createElement('div', { className: 'bg-white rounded-2xl p-8 border border-slate-100 shadow-sm h-full' },
+              React.createElement('h2', { className: 'text-xl font-medium text-slate-700 mb-8 flex items-center' },
+                React.createElement('span', { className: 'w-2 h-2 bg-blue-400 rounded-full mr-3' }),
+                'Daily Routine'
+              ),
+              React.createElement('div', { className: 'space-y-6' },
+                routine.map((item) => (
+                  React.createElement('div', { key: item.id, className: 'flex group' },
+                    // Time Input
+                    React.createElement('div', { className: 'w-24 shrink-0 pr-4 text-right' },
+                      React.createElement('input', {
+                        type: 'text',
+                        value: item.time,
+                        onChange: (e) => updateRoutine(item.id, 'time', e.target.value),
+                        className: 'text-xs font-semibold text-slate-400 bg-transparent focus:outline-none focus:text-blue-500 w-full text-right'
+                      })
+                    ),
+                    // Activity Input
+                    React.createElement('div', { className: 'relative border-l border-slate-100 pl-6 pb-2 w-full' },
+                      React.createElement('div', { className: 'absolute -left-1 top-1.5 w-2 h-2 rounded-full bg-slate-200 group-hover:bg-blue-300 transition-colors' }),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: item.label,
+                        onChange: (e) => updateRoutine(item.id, 'label', e.target.value),
+                        className: 'text-sm text-slate-600 font-normal bg-transparent focus:outline-none focus:text-slate-900 w-full'
+                      })
+                    )
+                  )
+                ))
+              )
+            )
+          ),
+
+          // RIGHT COLUMN: Tasks
+          React.createElement('div', { className: 'lg:col-span-7 flex flex-col gap-8' },
+            
+            // CARD: Today's Tasks
+            React.createElement('section', null,
+              React.createElement('div', { className: 'bg-white rounded-2xl p-8 border border-slate-100 shadow-sm' },
+                // Card Header
+                React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+                  React.createElement('h2', { className: 'text-xl font-medium text-slate-700 flex items-center' },
+                    React.createElement('span', { className: 'w-2 h-2 bg-emerald-400 rounded-full mr-3' }),
+                    'Today / Tomorrow Tasks'
+                  ),
+                  React.createElement('button', {
+                    onClick: () => addTask('today'),
+                    className: 'text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-full text-xs font-medium transition-colors'
+                  }, '+ Add Task')
+                ),
+                // Task List
+                React.createElement('ul', { className: 'space-y-4' },
+                  todayTasks.map((task) => (
+                    React.createElement('li', { key: task.id, className: 'flex items-center group' },
+                      React.createElement('input', {
+                        type: 'checkbox',
+                        checked: task.completed,
+                        onChange: () => toggleTask('today', task.id),
+                        className: 'w-5 h-5 rounded-full border-slate-200 text-emerald-500 focus:ring-emerald-500 cursor-pointer'
+                      }),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: task.text,
+                        onChange: (e) => updateTaskText('today', task.id, e.target.value),
+                        className: `ml-4 flex-grow text-sm bg-transparent focus:outline-none ${
+                          task.completed ? 'text-slate-300 line-through' : 'text-slate-600'
+                        }`
+                      }),
+                      React.createElement('button', {
+                        onClick: () => removeTask('today', task.id),
+                        title: "Remove task",
+                        className: 'ml-2 p-1 text-slate-300 hover:text-red-400 hover:bg-red-50 rounded transition-all'
+                      }, React.createElement(TrashIcon))
+                    )
+                  ))
+                )
+              )
+            ),
+
+            // CARD: Weekly Goals
+            React.createElement('section', null,
+              React.createElement('div', { className: 'bg-white rounded-2xl p-8 border border-slate-100 shadow-sm' },
+                // Card Header
+                React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+                  React.createElement('h2', { className: 'text-xl font-medium text-slate-700 flex items-center' },
+                    React.createElement('span', { className: 'w-2 h-2 bg-indigo-400 rounded-full mr-3' }),
+                    'This Week Tasks'
+                  ),
+                  React.createElement('button', {
+                    onClick: () => addTask('week'),
+                    className: 'text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-full text-xs font-medium transition-colors'
+                  }, '+ Add Goal')
+                ),
+                // Task List
+                React.createElement('ul', { className: 'space-y-4' },
+                  weekTasks.map((task) => (
+                    React.createElement('li', { key: task.id, className: 'flex items-center group' },
+                      React.createElement('input', {
+                        type: 'checkbox',
+                        checked: task.completed,
+                        onChange: () => toggleTask('week', task.id),
+                        className: 'w-5 h-5 rounded border-slate-200 text-indigo-500 focus:ring-indigo-500 cursor-pointer'
+                      }),
+                      React.createElement('input', {
+                        type: 'text',
+                        value: task.text,
+                        onChange: (e) => updateTaskText('week', task.id, e.target.value),
+                        className: `ml-4 flex-grow text-sm bg-transparent focus:outline-none ${
+                          task.completed ? 'text-slate-300 line-through' : 'text-slate-600'
+                        }`
+                      }),
+                      React.createElement('button', {
+                        onClick: () => removeTask('week', task.id),
+                        title: "Remove task",
+                        className: 'ml-2 p-1 text-slate-300 hover:text-red-400 hover:bg-red-50 rounded transition-all'
+                      }, React.createElement(TrashIcon))
+                    )
+                  ))
+                )
+              )
+            ),
+
+            // Quote Section
+            React.createElement('section', null,
+              React.createElement('div', { className: 'bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 border border-blue-50 text-center' },
+                React.createElement('p', { className: 'text-blue-500 text-sm italic font-medium' }, '"Small steps every day lead to big results over time."')
+              )
+            )
+          )
+        ),
+        
+        // Footer
+        React.createElement('footer', { className: 'mt-16 text-center' },
+          React.createElement('p', { className: 'text-slate-400 text-xs font-light tracking-widest uppercase' }, 'Focus. Consistency. Discipline.')
+        )
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
