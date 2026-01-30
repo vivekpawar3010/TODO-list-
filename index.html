@@ -130,6 +130,11 @@
         setter(prev => prev.filter(task => task.id !== id));
       };
 
+      // Helper to sort tasks: Active first, Completed last
+      const getSortedTasks = (tasks) => {
+        return [...tasks].sort((a, b) => Number(a.completed) - Number(b.completed));
+      };
+
       // 4. Render UI
       return React.createElement('div', { className: 'min-h-screen pb-12' },
         
@@ -198,7 +203,7 @@
                 ),
                 // Task List
                 React.createElement('ul', { className: 'space-y-4' },
-                  todayTasks.map((task) => (
+                  getSortedTasks(todayTasks).map((task) => (
                     React.createElement('li', { key: task.id, className: 'flex items-center group' },
                       React.createElement('input', {
                         type: 'checkbox',
@@ -241,7 +246,7 @@
                 ),
                 // Task List
                 React.createElement('ul', { className: 'space-y-4' },
-                  weekTasks.map((task) => (
+                  getSortedTasks(weekTasks).map((task) => (
                     React.createElement('li', { key: task.id, className: 'flex items-center group' },
                       React.createElement('input', {
                         type: 'checkbox',
