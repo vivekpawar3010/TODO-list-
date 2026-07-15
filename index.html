@@ -76,8 +76,73 @@
       React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M6 18L18 6M6 6l12 12" })
     );
 
+    const AppLogo = () => React.createElement('svg', {
+      xmlns: 'http://www.w3.org/2000/svg',
+      viewBox: '0 0 512 512',
+      className: 'w-12 h-12'
+    },
+      React.createElement('defs', null,
+        React.createElement('linearGradient', { id: 'premiumGold', x1: '0', y1: '0', x2: '1', y2: '1' },
+          React.createElement('stop', { offset: '0%', stopColor: '#FDB931' }),
+          React.createElement('stop', { offset: '30%', stopColor: '#FFF5C3' }),
+          React.createElement('stop', { offset: '60%', stopColor: '#D4AF37' }),
+          React.createElement('stop', { offset: '100%', stopColor: '#996515' })
+        ),
+        React.createElement('filter', { id: 'softShadow', x: '-20%', y: '-20%', width: '140%', height: '140%' },
+          React.createElement('feDropShadow', { dx: '0', dy: '4', stdDeviation: '4', floodColor: '#000', floodOpacity: '0.5' })
+        ),
+        React.createElement('filter', { id: 'glow' },
+          React.createElement('feGaussianBlur', { stdDeviation: '2.5', result: 'coloredBlur' }),
+          React.createElement('feMerge', null,
+            React.createElement('feMergeNode', { in: 'coloredBlur' }),
+            React.createElement('feMergeNode', { in: 'SourceGraphic' })
+          )
+        )
+      ),
+      React.createElement('circle', { cx: '256', cy: '256', r: '256', fill: '#111111' }),
+      React.createElement('g', { filter: 'url(#softShadow)' },
+        React.createElement('path', { d: 'M130 140 V400 H382 V140', fill: 'none', stroke: '#FFFFFF', strokeWidth: '12', strokeLinecap: 'round' }),
+        React.createElement('path', { d: 'M170 160 L256 380 L342 160 H300 L256 290 L212 160 Z', fill: '#FFFFFF' })
+      ),
+      React.createElement('path', { d: 'M190 145 L190 100 L223 130 L256 80 L289 130 L322 100 L322 145 Z', fill: 'url(#premiumGold)' }),
+      React.createElement('circle', { cx: '256', cy: '70', r: '5', fill: '#FFF5C3' }),
+      React.createElement('circle', { cx: '190', cy: '90', r: '5', fill: '#FFF5C3' }),
+      React.createElement('circle', { cx: '322', cy: '90', r: '5', fill: '#FFF5C3' })
+    );
+
+    const ProfilePopup = ({ isOpen }) => React.createElement('div', {
+      className: `absolute right-0 top-full mt-3 w-64 rounded-3xl border border-slate-200/80 bg-white shadow-2xl p-4 transition-all ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'} `
+    },
+      React.createElement('div', { className: 'mb-4 flex items-center gap-3 bg-slate-100 rounded-3xl p-3' },
+        React.createElement('div', { className: 'w-12 h-12 rounded-3xl bg-slate-900 p-2 flex items-center justify-center' },
+          React.createElement(AppLogo, null)
+        ),
+        React.createElement('div', null,
+          React.createElement('p', { className: 'text-xs font-black uppercase tracking-[0.25em] text-slate-500' }, 'VIVEK PAWAR'),
+          React.createElement('p', { className: 'text-[10px] font-bold uppercase tracking-[0.2em] text-slate-700' }, 'Developer')
+        )
+      ),
+      React.createElement('div', { className: 'space-y-3' },
+        React.createElement('a', { href: 'https://www.linkedin.com/in/vivekbpawar', target: '_blank', rel: 'noopener noreferrer', className: 'flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-slate-50 p-3 transition hover:bg-blue-50' },
+          React.createElement('span', { className: 'w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs font-black' }, 'in'),
+          React.createElement('span', { className: 'text-[10px] font-black uppercase tracking-[0.2em] text-slate-700' }, 'LinkedIn')
+        ),
+        React.createElement('a', { href: 'https://github.com/vivekpawar3010', target: '_blank', rel: 'noopener noreferrer', className: 'flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-slate-50 p-3 transition hover:bg-slate-100' },
+          React.createElement('span', { className: 'w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-black' }, 'GH'),
+          React.createElement('span', { className: 'text-[10px] font-black uppercase tracking-[0.2em] text-slate-700' }, 'GitHub')
+        ),
+        React.createElement('a', { href: 'https://vivekpawar.vercel.app', target: '_blank', rel: 'noopener noreferrer', className: 'flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-slate-50 p-3 transition hover:bg-amber-50' },
+          React.createElement('span', { className: 'w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xs font-black' }, 'G'),
+          React.createElement('span', { className: 'text-[10px] font-black uppercase tracking-[0.2em] text-slate-700' }, 'GenZDay')
+        )
+      )
+    );
+
     // --- Main App Component ---
     const App = () => {
+      const [menuOpen, setMenuOpen] = useState(false);
+      const [menuPinned, setMenuPinned] = useState(false);
+
       // 1. Initialize State (Load from LocalStorage or fall back to defaults)
       const [routine, setRoutine] = useState(() => {
         const saved = localStorage.getItem('routine');
@@ -136,8 +201,24 @@
       };
 
       // 4. Render UI
-      return React.createElement('div', { className: 'min-h-screen pb-12' },
-        
+      return React.createElement('div', { className: 'relative min-h-screen pb-12' },
+        React.createElement('div', {
+          className: 'fixed top-6 right-6 z-50',
+          onMouseEnter: () => setMenuOpen(true),
+          onMouseLeave: () => { if (!menuPinned) setMenuOpen(false); }
+        },
+          React.createElement('button', {
+            className: 'rounded-3xl border border-slate-200/70 bg-white/95 p-3 shadow-2xl backdrop-blur-md transition hover:shadow-3xl',
+            onClick: () => {
+              setMenuOpen(prev => !prev);
+              setMenuPinned(prev => !prev);
+            },
+          },
+            React.createElement(AppLogo, null)
+          ),
+          React.createElement(ProfilePopup, { isOpen: menuOpen })
+        ),
+
         // Header
         React.createElement('header', { className: 'pt-12 pb-8 text-center' },
           React.createElement('h1', { className: 'text-3xl font-light tracking-tight text-slate-800' }, 'My Daily Routine & Task Manager'),
